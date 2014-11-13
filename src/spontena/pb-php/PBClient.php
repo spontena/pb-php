@@ -1,6 +1,6 @@
 <?php
 	namespace spontena\pbphp;
-	require '../../vendor/autoload.php';
+	
 	use GuzzleHttp\Client;
 	use GuzzleHttp\Exception\RequestException;
 
