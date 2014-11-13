@@ -1,5 +1,6 @@
 <?php
-	# require_once "PBClient.php";
+	require "vendor/autoload.php";
+	use spontena\pbphp\PBClient;
 
 	# Configuration
 	# $baseURL = 'https://aiaas.pandorabots.com';
