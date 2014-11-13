@@ -1,0 +1,21 @@
+{
+	"name": "spontena/pb-php",
+	"description": "Pandorabots API module for PHP",
+	"keywords": ["pandorabots", "php", "aiml", "spontena"],
+	"type": "library",
+	"license": "MIT",
+	"authors": [
+	  {
+	    "name": "Keisuke Nakamura",
+	    "email": "keisuke.nakamura@spontena.com"
+	  }
+	],
+    "require": {
+        "guzzlehttp/guzzle": "4"
+    },
+    "autoload": {
+        "psr-0": {
+           "spontena\\pb-php": "src/"
+        }
+    }
+}
