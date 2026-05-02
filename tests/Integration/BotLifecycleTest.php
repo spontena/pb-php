@@ -9,7 +9,7 @@ use Spontena\PbPhp\FileKind;
 /**
  * End-to-end test against the real Pandorabots API.
  * Exercises the full bot lifecycle: create → upload → compile → list files →
- * talk → debug → deleteBotFile → delete.
+ * fetch file content → talk → debug → deleteBotFile → delete.
  *
  * Run with:
  *   PB_APP_ID=xxx PB_USER_KEY=yyy vendor/bin/phpunit --testsuite integration
@@ -41,6 +41,12 @@ final class BotLifecycleTest extends IntegrationTestCase
             array_intersect(['sample', 'sample.aiml'], $names),
             sprintf('uploaded sample should be listed in files; got: %s', implode(',', $names)),
         );
+
+        // 4b. fetch single file content — pb-php v2.1 getBotFile()
+        $content = $this->client->getBotFile(FileKind::File, $botname, 'sample');
+        $this->assertNotEmpty($content, 'getBotFile should return non-empty body');
+        $this->assertStringContainsString('HELLO', $content, 'fetched AIML should contain the original pattern');
+        $this->assertStringContainsString('Hello, world.', $content, 'fetched AIML should contain the original template');
 
         // 5. talk — sample.aiml answers HELLO with "Hello, world."
         $reply = $this->client->talk('HELLO', $botname);
