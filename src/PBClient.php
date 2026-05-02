@@ -68,6 +68,24 @@ final class PBClient
         return $this->request('GET', $this->botPath($botname));
     }
 
+    public function getBotFile(FileKind $kind, string $botname, ?string $name = null): string
+    {
+        $this->assertNotEmpty($botname, 'botname');
+
+        if ($kind->hasFilenameInPath()) {
+            if ($name === null || $name === '') {
+                throw new InvalidArgumentException(sprintf('name is required for kind %s', $kind->value));
+            }
+        } else {
+            if ($name !== null) {
+                throw new InvalidArgumentException(sprintf('name must not be supplied for kind %s', $kind->value));
+            }
+        }
+
+        $response = $this->send('GET', $this->fileKindPath($botname, $kind, $name ?? ''));
+        return (string) $response->getBody();
+    }
+
     public function upload(string $fname, string $botname): \stdClass
     {
         $this->assertNotEmpty($botname, 'botname');

@@ -255,4 +255,66 @@ final class PBClientTest extends TestCase
             $this->assertSame('error', $e->getDecodedBody()?->status);
         }
     }
+
+    public function testGetBotFileReturnsRawBodyForFileKind(): void
+    {
+        $aiml = "<aiml><category><pattern>HI</pattern><template>hello</template></category></aiml>";
+        $this->mock->append(new Response(200, [], $aiml));
+
+        $body = $this->client->getBotFile(FileKind::File, 'mybot', 'greet');
+
+        $this->assertSame($aiml, $body, 'raw body must be returned as string, no JSON decoding');
+        $req = $this->lastRequest();
+        $this->assertSame('GET', $req->getMethod());
+        $this->assertSame('/bot/app123/mybot/file/greet', $req->getUri()->getPath());
+        $this->assertSame('user_key=key456', $req->getUri()->getQuery());
+    }
+
+    public function testGetBotFileWorksForKindsWithoutFilename(): void
+    {
+        $payload = '{"key":"value"}';
+        $this->mock->append(new Response(200, [], $payload));
+
+        $body = $this->client->getBotFile(FileKind::Properties, 'mybot');
+
+        $this->assertSame($payload, $body);
+        $this->assertSame('/bot/app123/mybot/properties', $this->lastRequest()->getUri()->getPath());
+    }
+
+    public function testGetBotFileRequiresNameForFilenameKinds(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->client->getBotFile(FileKind::File, 'mybot', null);
+    }
+
+    public function testGetBotFileRejectsNameForKindsWithoutFilename(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->client->getBotFile(FileKind::Pdefaults, 'mybot', 'should-not-be-here');
+    }
+
+    public function testGetBotFileEncodesBotnameAndFilename(): void
+    {
+        $this->mock->append(new Response(200, [], 'x'));
+
+        $this->client->getBotFile(FileKind::Set, 'my bot', 'na me/with&special');
+
+        $this->assertSame(
+            '/bot/app123/my%20bot/set/na%20me%2Fwith%26special',
+            $this->lastRequest()->getUri()->getPath(),
+        );
+    }
+
+    public function testGetBotFileThrowsApiExceptionOn404(): void
+    {
+        $this->mock->append(new Response(404, [], '{"status":"error","message":"file missing"}'));
+
+        try {
+            $this->client->getBotFile(FileKind::File, 'mybot', 'missing');
+            $this->fail('Expected ApiException');
+        } catch (ApiException $e) {
+            $this->assertSame(404, $e->getStatusCode());
+            $this->assertStringContainsString('file missing', $e->getResponseBody());
+        }
+    }
 }

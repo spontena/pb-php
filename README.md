@@ -57,6 +57,7 @@ PB_APP_ID=xxx PB_USER_KEY=yyy php examples/quickstart.php
 | `create($botname)` | `PUT` | `/bot/{appId}/{botname}` |
 | `delete($botname)` | `DELETE` | `/bot/{appId}/{botname}` |
 | `getBotFiles($botname)` | `GET` | `/bot/{appId}/{botname}` |
+| `getBotFile(FileKind $kind, $botname, ?$name)` | `GET` | `/bot/{appId}/{botname}/{kind}[/{name}]` (since v2.1.0) |
 | `upload($path, $botname)` | `PUT` | `/bot/{appId}/{botname}/{kind}[/{name}]` |
 | `deleteBotFile($name, FileKind $kind, $botname)` | `DELETE` | `/bot/{appId}/{botname}/{kind}[/{name}]` |
 | `compile($botname)` | `GET` | `/bot/{appId}/{botname}/verify` |
@@ -64,7 +65,7 @@ PB_APP_ID=xxx PB_USER_KEY=yyy php examples/quickstart.php
 | `debug($input, $botname, ...)` | `POST` | `/talk/{appId}/{botname}` (with `trace` etc.) |
 | `atalk($input, ...)` | `POST` | `/talk?botkey=...` (botkey auth, bot identified by key) |
 
-Successful responses are returned as `stdClass` (the decoded JSON body). `getBotsList()` returns a `list<\stdClass>` because the API responds with a top-level JSON array. HTTP 4xx/5xx responses raise `Spontena\PbPhp\Exception\ApiException`; bad inputs raise `InvalidArgumentException` or `InvalidFileException`.
+Successful responses are returned as `stdClass` (the decoded JSON body). `getBotsList()` returns a `list<\stdClass>` because the API responds with a top-level JSON array. `getBotFile()` returns the raw response body as a `string` (no JSON decoding) — useful for downloading AIML/set/map content. HTTP 4xx/5xx responses raise `Spontena\PbPhp\Exception\ApiException`; bad inputs raise `InvalidArgumentException` or `InvalidFileException`.
 
 `upload()` infers the file kind from the extension:
 
