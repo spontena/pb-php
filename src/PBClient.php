@@ -112,7 +112,9 @@ final class PBClient
     public function deleteBotFile(string $fname, FileKind $fkind, string $botname): \stdClass
     {
         $this->assertNotEmpty($botname, 'botname');
-        $this->assertNotEmpty($fname, 'fname');
+        if ($fkind->hasFilenameInPath()) {
+            $this->assertNotEmpty($fname, 'fname');
+        }
 
         return $this->request('DELETE', $this->fileKindPath($botname, $fkind, $fname));
     }

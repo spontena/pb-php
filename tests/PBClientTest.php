@@ -242,6 +242,26 @@ final class PBClientTest extends TestCase
         $this->assertSame('/bot/app123/mybot/properties', $this->lastRequest()->getUri()->getPath());
     }
 
+    public function testDeleteBotFilePropertiesAcceptsEmptyFname(): void
+    {
+        $this->queueOk();
+        $this->client->deleteBotFile('', FileKind::Properties, 'mybot');
+        $this->assertSame('/bot/app123/mybot/properties', $this->lastRequest()->getUri()->getPath());
+    }
+
+    public function testDeleteBotFilePdefaultsAcceptsEmptyFname(): void
+    {
+        $this->queueOk();
+        $this->client->deleteBotFile('', FileKind::Pdefaults, 'mybot');
+        $this->assertSame('/bot/app123/mybot/pdefaults', $this->lastRequest()->getUri()->getPath());
+    }
+
+    public function testDeleteBotFileFileKindRejectsEmptyFname(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->client->deleteBotFile('', FileKind::File, 'mybot');
+    }
+
     public function testApiExceptionOn404(): void
     {
         $this->mock->append(new Response(404, [], '{"status":"error","message":"not found"}'));

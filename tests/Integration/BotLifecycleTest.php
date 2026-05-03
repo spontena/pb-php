@@ -57,9 +57,24 @@ final class BotLifecycleTest extends IntegrationTestCase
         $debug = $this->client->debug('HELLO', $botname, clientName: 'phpunit');
         $this->assertSame('ok', $debug->status, 'debug should return status=ok');
 
-        // 7. deleteBotFile
+        // 7. deleteBotFile — File kind with explicit name
         $deletedFile = $this->client->deleteBotFile('sample', FileKind::File, $botname);
         $this->assertSame('ok', $deletedFile->status, 'deleteBotFile should return status=ok');
+
+        // 7b. deleteBotFile with empty fname for Properties kind (v2.1.1 fix).
+        // Upload a minimal properties file first so there is something to delete.
+        // Pandorabots expects properties in JSON [[key, value], ...] form;
+        // plain key=value text is rejected with HTTP 400 "request is malformed".
+        $propsFile = tempnam(sys_get_temp_dir(), 'pbphp_') . '.properties';
+        file_put_contents($propsFile, (string) json_encode([
+            ['botname', 'LifecycleBot'],
+            ['author', 'phpunit'],
+        ]));
+        $this->client->upload($propsFile, $botname);
+        unlink($propsFile);
+
+        $deletedProps = $this->client->deleteBotFile('', FileKind::Properties, $botname);
+        $this->assertSame('ok', $deletedProps->status, 'deleteBotFile with empty fname should work for Properties');
 
         // 8. delete bot (also covered by tearDown but verify return shape)
         $deletedBot = $this->client->delete($botname);

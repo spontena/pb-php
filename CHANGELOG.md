@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [2.1.1] — 2026-05-03
+
+### Fixed
+- `PBClient::deleteBotFile()` no longer asserts a non-empty `$fname` for file kinds whose URL does not include a filename (`Pdefaults`, `Properties`). Passing an empty string for those kinds now works correctly — the `$fname` argument is silently ignored when building the URL, as it always was. File kinds that do include a filename in the URL (`File`, `Set`, `Map`, `Substitution`) still require a non-empty `$fname`.
+
 ## [2.1.0] — 2026-05-03
 
 ### Added
