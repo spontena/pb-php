@@ -109,7 +109,16 @@ final class PBClient
         }
 
         $extension = pathinfo($fname, PATHINFO_EXTENSION);
-        $kind = FileKind::fromExtension($extension);
+        if ($extension !== '') {
+            $kind = FileKind::fromExtension($extension);
+        } else {
+            // Bare-name files (e.g. `properties`, `pdefaults`) have no extension
+            // but their basename equals the kind value. The API returns these
+            // kinds without a filename component, so this is the natural shape
+            // for a pulled file on disk and round-tripping must accept it.
+            $candidate = FileKind::fromExtension(pathinfo($fname, PATHINFO_BASENAME));
+            $kind = ($candidate !== null && !$candidate->hasFilenameInPath()) ? $candidate : null;
+        }
         if ($kind === null) {
             throw new InvalidFileException(sprintf('Unsupported file extension: %s', $extension));
         }

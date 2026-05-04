@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [2.1.3] — 2026-05-04
+
+### Fixed
+- `PBClient::upload()` now accepts bare-name local files for kinds whose URL has no filename component (`properties`, `pdefaults`). Previously, uploading a file literally named `properties` or `pdefaults` (with no extension) failed with `InvalidFileException: Unsupported file extension:` — even though `getBotFile()` returns those kinds without a filename component, making bare-name files the natural shape after a pull. This made `pull → push` not a clean roundtrip.
+  - Files with an unknown extension or a bare basename that does not match any kind value still raise `InvalidFileException`.
+  - A bare-name file matching a kind that requires a filename in the URL (`file`, `set`, `map`, `substitution`) is still rejected, since uploading it would be ambiguous.
+
 ## [2.1.2] — 2026-05-04
 
 ### Added

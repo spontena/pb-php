@@ -202,6 +202,63 @@ final class PBClientTest extends TestCase
         }
     }
 
+    public function testUploadAcceptsBareNamePropertiesFile(): void
+    {
+        // Files pulled from the API for kinds without a filename component
+        // (e.g. `properties`, `pdefaults`) are stored on disk under their
+        // bare kind name. A pull → push roundtrip must accept that shape.
+        $dir = sys_get_temp_dir() . '/pbphp-' . bin2hex(random_bytes(4));
+        mkdir($dir);
+        $bare = $dir . '/properties';
+        file_put_contents($bare, "k=v\n");
+
+        try {
+            $this->queueOk();
+            $this->client->upload($bare, 'mybot');
+            $req = $this->lastRequest();
+            $this->assertSame('/bot/app123/mybot/properties', $req->getUri()->getPath());
+        } finally {
+            @unlink($bare);
+            @rmdir($dir);
+        }
+    }
+
+    public function testUploadAcceptsBareNamePdefaultsFile(): void
+    {
+        $dir = sys_get_temp_dir() . '/pbphp-' . bin2hex(random_bytes(4));
+        mkdir($dir);
+        $bare = $dir . '/pdefaults';
+        file_put_contents($bare, '[]');
+
+        try {
+            $this->queueOk();
+            $this->client->upload($bare, 'mybot');
+            $req = $this->lastRequest();
+            $this->assertSame('/bot/app123/mybot/pdefaults', $req->getUri()->getPath());
+        } finally {
+            @unlink($bare);
+            @rmdir($dir);
+        }
+    }
+
+    public function testUploadRejectsBareNameForKindWithFilenameInPath(): void
+    {
+        // A bare-name file like `set` would be ambiguous (Set requires a
+        // filename in path) — must still be rejected.
+        $dir = sys_get_temp_dir() . '/pbphp-' . bin2hex(random_bytes(4));
+        mkdir($dir);
+        $bare = $dir . '/set';
+        file_put_contents($bare, 'noise');
+
+        try {
+            $this->expectException(InvalidFileException::class);
+            $this->client->upload($bare, 'mybot');
+        } finally {
+            @unlink($bare);
+            @rmdir($dir);
+        }
+    }
+
     public function testUploadRejectsUnknownExtension(): void
     {
         $tmp = tempnam(sys_get_temp_dir(), 'pbphp') . '.bogus';
