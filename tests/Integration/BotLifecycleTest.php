@@ -48,6 +48,15 @@ final class BotLifecycleTest extends IntegrationTestCase
         $this->assertStringContainsString('HELLO', $content, 'fetched AIML should contain the original pattern');
         $this->assertStringContainsString('Hello, world.', $content, 'fetched AIML should contain the original template');
 
+        // 4c. upload with an explicit `name` (alias-style) — pb-php v2.1.2.
+        // Upload the same fixture but as `aliased` instead of `sample`, and
+        // confirm the file is reachable at the alias name.
+        $this->client->upload(self::fixturesPath('sample.aiml'), $botname, name: 'aliased');
+        $aliasedContent = $this->client->getBotFile(FileKind::File, $botname, 'aliased');
+        $this->assertStringContainsString('HELLO', $aliasedContent, 'alias upload should be retrievable under the new name');
+        // Cleanup the alias so the rest of the lifecycle is unaffected.
+        $this->client->deleteBotFile('aliased', FileKind::File, $botname);
+
         // 5. talk — sample.aiml answers HELLO with "Hello, world."
         $reply = $this->client->talk('HELLO', $botname);
         $this->assertSame('ok', $reply->status, 'talk should return status=ok');

@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [2.1.2] — 2026-05-04
+
+### Added
+- `PBClient::upload()` gains an optional `?string $name = null` parameter. When provided, the upload uses that as the remote file name in the URL instead of deriving it from the local file's basename. Useful for alias-style uploads where the local source file lives at a path whose basename does not match the canonical name on the bot (e.g. uploading `variants/greet-debug.aiml` as `greet`).
+  - The parameter is ignored for kinds whose URL has no filename component (`pdefaults`, `properties`).
+  - Backwards-compatible: existing callers that pass two arguments behave exactly as before.
+
 ## [2.1.1] — 2026-05-03
 
 ### Fixed

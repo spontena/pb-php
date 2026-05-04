@@ -86,7 +86,21 @@ final class PBClient
         return (string) $response->getBody();
     }
 
-    public function upload(string $fname, string $botname): \stdClass
+    /**
+     * Upload a file to a bot.
+     *
+     * @param string      $fname   Local path of the file to upload. Its extension
+     *                             determines the remote `FileKind`.
+     * @param string      $botname Bot to upload to.
+     * @param string|null $name    Optional remote file name to upload as. When
+     *                             null (default), derived from `$fname`'s basename.
+     *                             Pass an explicit name when the local file's
+     *                             basename does not match the canonical name —
+     *                             e.g. uploading `variants/greet-debug.aiml` as
+     *                             `greet`. Ignored for kinds whose URL has no
+     *                             filename component (`pdefaults`, `properties`).
+     */
+    public function upload(string $fname, string $botname, ?string $name = null): \stdClass
     {
         $this->assertNotEmpty($botname, 'botname');
 
@@ -100,8 +114,8 @@ final class PBClient
             throw new InvalidFileException(sprintf('Unsupported file extension: %s', $extension));
         }
 
-        $basename = pathinfo($fname, PATHINFO_FILENAME);
-        $url = $this->fileKindPath($botname, $kind, $basename);
+        $effectiveName = $name ?? pathinfo($fname, PATHINFO_FILENAME);
+        $url = $this->fileKindPath($botname, $kind, $effectiveName);
 
         return $this->request('PUT', $url, [
             RequestOptions::BODY => Utils::tryFopen($fname, 'r'),

@@ -221,6 +221,39 @@ final class PBClientTest extends TestCase
         $this->client->upload('/no/such/path.aiml', 'mybot');
     }
 
+    public function testUploadWithExplicitNameUsesItInUrl(): void
+    {
+        $this->queueOk();
+        $path = __DIR__ . '/Fixtures/sample.aiml';
+
+        $this->client->upload($path, 'mybot', name: 'greet');
+
+        $req = $this->lastRequest();
+        $this->assertSame('PUT', $req->getMethod());
+        $this->assertSame('/bot/app123/mybot/file/greet', $req->getUri()->getPath());
+    }
+
+    public function testUploadWithExplicitNameIsIgnoredForPropertiesKind(): void
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'pbphp');
+        rename($tmp, $tmp . '.properties');
+        $tmp .= '.properties';
+        file_put_contents($tmp, '[]');
+
+        try {
+            $this->queueOk();
+            $this->client->upload($tmp, 'mybot', name: 'should-be-ignored');
+            $req = $this->lastRequest();
+            $this->assertSame(
+                '/bot/app123/mybot/properties',
+                $req->getUri()->getPath(),
+                'kinds without a filename in path must ignore the explicit name',
+            );
+        } finally {
+            @unlink($tmp);
+        }
+    }
+
     public function testDeleteBotFileFileKind(): void
     {
         $this->queueOk();
