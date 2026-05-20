@@ -5,3 +5,9 @@ composer.lock
 .phpunit.result.cache
 phpstan.neon
 phpunit.xml
+
+# Local AI-agent instructions
+CLAUDE.md
+AGENTS.md
+.claude/
+.codex/
