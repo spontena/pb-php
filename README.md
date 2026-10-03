@@ -8,7 +8,7 @@ Pandorabots API client for PHP.
 
 - PHP 8.1 or newer
 - ext-json
-- [Guzzle](https://github.com/guzzle/guzzle) 7.5+
+- [Guzzle](https://github.com/guzzle/guzzle) 7.15.2+ (7.x) and guzzlehttp/psr7 2.12.3+ (2.x)
 
 ## Installation
 
@@ -90,6 +90,26 @@ v2 is a breaking-change release. Notable differences:
 - `debug()`'s broken `client_name` parameter (the long-standing `$clientname` typo) is fixed.
 - Requires PHP 8.1+ and Guzzle 7.5+.
 
+## Error handling and logging
+
+HTTP errors throw `ApiException`. Its message contains the HTTP status and the
+request method/URL path, without the query or response body. Use `getStatusCode()`,
+`getResponseBody()`, or `getDecodedBody()` for application error handling instead
+of parsing the exception message.
+
+Transport failures retain the standard Guzzle `ConnectException`,
+`RequestException`, or `TooManyRedirectsException` type, with a fixed message and
+no previous exception. Custom subclasses raised by an injected HTTP client are
+normalized to the corresponding standard type. Request, response, and handler
+context accessors remain available for retries and diagnostics, and can contain
+credentials or conversation data. Do not log their raw values or dump entire
+exception objects.
+
+Use `zend.exception_ignore_args=On` when logging exception traces, especially on
+PHP 8.1. PHP 8.2+ also redacts this library's sensitive parameters using
+`SensitiveParameter`; callers remain responsible for sensitive arguments in their
+own stack frames. This library does not change global PHP settings.
+
 ## Testing
 
 ### Unit tests (no API access)
@@ -100,7 +120,7 @@ composer test          # PHPUnit unit suite (mocked HTTP, runs by default)
 composer analyse       # PHPStan (level 6)
 ```
 
-CI runs the unit suite on PHP 8.1 / 8.2 / 8.3 / 8.4 — see `.github/workflows/ci.yml`.
+CI runs the unit suite and dependency audit on PHP 8.1 / 8.2 / 8.3 / 8.4 / 8.5 — see `.github/workflows/ci.yml`.
 
 ### Integration tests (real Pandorabots API)
 

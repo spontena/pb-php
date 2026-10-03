@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [2.1.4] — 2026-10-03
+
+### Security
+- Require Guzzle `^7.15.2` and guzzlehttp/psr7 `^2.12.3` to exclude versions affected by the security advisories identified in the October 2026 dependency audit. Consumers must update their application dependencies to receive these fixes; an existing application lock file is not updated by this change alone.
+- Replace transport exception messages with fixed descriptions and omit original exception chains so request query credentials cannot reach message logs. Standard Guzzle `ConnectException`, `RequestException`, and `TooManyRedirectsException` types and diagnostic accessors are retained; custom subclasses of these transport exceptions are normalized to the corresponding standard type.
+- Omit response bodies from HTTP error messages. `ApiException` retains its HTTP status and explicit response-body accessors. Applications parsing exception messages must switch to the status/body accessors.
+- Mark sensitive exception and request arguments with `SensitiveParameter` for PHP 8.2+. On PHP 8.1, set `zend.exception_ignore_args=On` before logging exception traces. Raw diagnostic accessors may still contain credentials and must not be logged without redaction.
+
+### Changed
+- Add dependency auditing, a weekly scheduled run, manual dispatch, and PHP 8.5 coverage to CI. Tests continue to use the unit suite without calling the live Pandorabots API.
+- PHP `^8.1` and existing method signatures are retained.
+
 ## [2.1.3] — 2026-05-04
 
 ### Fixed

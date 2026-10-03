@@ -7,6 +7,9 @@ namespace Spontena\PbPhp;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\TooManyRedirectsException;
 use GuzzleHttp\Psr7\Utils;
 use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\ResponseInterface;
@@ -21,8 +24,8 @@ final class PBClient
     public function __construct(
         private readonly string $host,
         private readonly string $appId,
-        private readonly string $userKey,
-        private readonly ?string $botKey = null,
+        #[\SensitiveParameter] private readonly string $userKey,
+        #[\SensitiveParameter] private readonly ?string $botKey = null,
         ?ClientInterface $http = null,
     ) {
         $this->http = $http ?? new Client([
@@ -149,7 +152,7 @@ final class PBClient
     }
 
     public function talk(
-        string $input,
+        #[\SensitiveParameter] string $input,
         string $botname,
         string $clientName = '',
         string $sessionId = '',
@@ -166,7 +169,7 @@ final class PBClient
     }
 
     public function debug(
-        string $input,
+        #[\SensitiveParameter] string $input,
         string $botname,
         string $clientName = '',
         string $sessionId = '',
@@ -201,7 +204,7 @@ final class PBClient
     }
 
     public function atalk(
-        string $input,
+        #[\SensitiveParameter] string $input,
         string $clientName = '',
         string $sessionId = '',
         bool $recent = true,
@@ -236,7 +239,7 @@ final class PBClient
     /**
      * @param array<string, mixed> $options
      */
-    private function request(string $method, string $path, array $options = [], bool $authenticated = true): \stdClass
+    private function request(string $method, string $path, #[\SensitiveParameter] array $options = [], bool $authenticated = true): \stdClass
     {
         $response = $this->send($method, $path, $options, $authenticated);
         $body = (string) $response->getBody();
@@ -256,7 +259,7 @@ final class PBClient
     /**
      * @param array<string, mixed> $options
      */
-    private function send(string $method, string $path, array $options = [], bool $authenticated = true): ResponseInterface
+    private function send(string $method, string $path, #[\SensitiveParameter] array $options = [], bool $authenticated = true): ResponseInterface
     {
         $url = rtrim($this->host, '/') . $path;
 
@@ -271,6 +274,33 @@ final class PBClient
             return $this->http->request($method, $url, $options);
         } catch (BadResponseException $e) {
             throw ApiException::fromGuzzle($e);
+        } catch (ConnectException $e) {
+            // Keep retry diagnostics available explicitly, but never include the
+            // original message or exception chain in the log-facing exception.
+            throw new ConnectException(
+                'Pandorabots API connection failed.',
+                $e->getRequest(),
+                null,
+                $e->getHandlerContext(),
+            );
+        } catch (RequestException $e) {
+            if ($e instanceof TooManyRedirectsException) {
+                throw new TooManyRedirectsException(
+                    'Pandorabots API redirect limit exceeded.',
+                    $e->getRequest(),
+                    $e->getResponse(),
+                    null,
+                    $e->getHandlerContext(),
+                );
+            }
+
+            throw new RequestException(
+                'Pandorabots API request failed.',
+                $e->getRequest(),
+                $e->getResponse(),
+                null,
+                $e->getHandlerContext(),
+            );
         }
     }
 
