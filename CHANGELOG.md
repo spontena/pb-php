@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Mark sensitive exception and request arguments with `SensitiveParameter` for PHP 8.2+. On PHP 8.1, set `zend.exception_ignore_args=On` before logging exception traces. Raw diagnostic accessors may still contain credentials and must not be logged without redaction.
 
 ### Changed
-- Add dependency auditing, a weekly scheduled run, manual dispatch, and PHP 8.5 coverage to CI. Tests continue to use the unit suite without calling the live Pandorabots API.
+- Add dependency auditing, security-branch checks, a weekly scheduled run, manual dispatch, and PHP 8.5 coverage to CI. Tests continue to use the unit suite without calling the live Pandorabots API.
 - PHP `^8.1` and existing method signatures are retained.
 
 ## [2.1.3] — 2026-05-04

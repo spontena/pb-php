@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [master, v2]
+    branches: [master, v2, 'security/**']
   pull_request:
   schedule:
     - cron: '0 0 * * 1'
