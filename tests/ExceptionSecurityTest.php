@@ -72,6 +72,7 @@ final class ExceptionSecurityTest extends TestCase
             $this->assertSafeMessage($e);
             self::assertSame($sent, $e->getRequest());
             self::assertSame($context, $e->getHandlerContext());
+            self::assertStringContainsString('(cURL error 28).', $e->getMessage());
             if ($e instanceof RequestException) {
                 self::assertSame($response, $e->getResponse());
                 self::assertSame(302, $e->getCode());

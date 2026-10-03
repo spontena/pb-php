@@ -88,7 +88,7 @@ v2 is a breaking-change release. Notable differences:
 - `deleteBotFile()` now takes a `FileKind` enum instead of a string.
 - `botname` and filenames are URL-encoded.
 - `debug()`'s broken `client_name` parameter (the long-standing `$clientname` typo) is fixed.
-- Requires PHP 8.1+ and Guzzle 7.5+.
+- Requires PHP 8.1+ and Guzzle 7.x (see [Requirements](#requirements) for the current minimum patched version).
 
 ## Error handling and logging
 
@@ -98,10 +98,11 @@ request method/URL path, without the query or response body. Use `getStatusCode(
 of parsing the exception message.
 
 Transport failures retain the standard Guzzle `ConnectException`,
-`RequestException`, or `TooManyRedirectsException` type, with a fixed message and
-no previous exception. Custom subclasses raised by an injected HTTP client are
-normalized to the corresponding standard type. Request, response, and handler
-context accessors remain available for retries and diagnostics, and can contain
+`RequestException`, or `TooManyRedirectsException` type, with a fixed message
+(plus the numeric cURL error code when the handler reports one) and no previous
+exception. Custom subclasses raised by an injected HTTP client are normalized to
+the corresponding standard type. Request, response, and handler context
+accessors remain available for retries and diagnostics, and can contain
 credentials or conversation data. Do not log their raw values or dump entire
 exception objects.
 

@@ -278,7 +278,7 @@ final class PBClient
             // Keep retry diagnostics available explicitly, but never include the
             // original message or exception chain in the log-facing exception.
             throw new ConnectException(
-                'Pandorabots API connection failed.',
+                $this->transportMessage('Pandorabots API connection failed', $e->getHandlerContext()),
                 $e->getRequest(),
                 null,
                 $e->getHandlerContext(),
@@ -286,7 +286,7 @@ final class PBClient
         } catch (RequestException $e) {
             if ($e instanceof TooManyRedirectsException) {
                 throw new TooManyRedirectsException(
-                    'Pandorabots API redirect limit exceeded.',
+                    $this->transportMessage('Pandorabots API redirect limit exceeded', $e->getHandlerContext()),
                     $e->getRequest(),
                     $e->getResponse(),
                     null,
@@ -295,13 +295,30 @@ final class PBClient
             }
 
             throw new RequestException(
-                'Pandorabots API request failed.',
+                $this->transportMessage('Pandorabots API request failed', $e->getHandlerContext()),
                 $e->getRequest(),
                 $e->getResponse(),
                 null,
                 $e->getHandlerContext(),
             );
         }
+    }
+
+    /**
+     * Build a credential-free transport error message. Only the numeric cURL
+     * error code is appended so timeouts, DNS failures, and TLS errors remain
+     * distinguishable in logs without echoing the original (URL-bearing) text.
+     *
+     * @param array<string, mixed> $handlerContext
+     */
+    private function transportMessage(string $description, array $handlerContext): string
+    {
+        $errno = $handlerContext['errno'] ?? null;
+        if (is_int($errno) && $errno > 0) {
+            return sprintf('%s (cURL error %d).', $description, $errno);
+        }
+
+        return $description . '.';
     }
 
     private function botPath(string $botname): string
