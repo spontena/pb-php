@@ -11,12 +11,12 @@ class ApiException extends PandorabotsException
     public function __construct(
         string $message,
         private readonly int $statusCode,
-        private readonly string $responseBody,
+        #[\SensitiveParameter] private readonly string $responseBody,
     ) {
         parent::__construct($message, $statusCode);
     }
 
-    public static function fromGuzzle(BadResponseException $e): self
+    public static function fromGuzzle(#[\SensitiveParameter] BadResponseException $e): self
     {
         $response = $e->getResponse();
         $status = $response->getStatusCode();
@@ -38,7 +38,7 @@ class ApiException extends PandorabotsException
         // Intentionally do NOT pass $e as previous: its default __toString()
         // includes the full URL (with query) which would leak credentials.
         return new self(
-            sprintf('Pandorabots API returned HTTP %d for %s: %s', $status, $descriptor, $body),
+            sprintf('Pandorabots API returned HTTP %d for %s', $status, $descriptor),
             $status,
             $body,
         );
