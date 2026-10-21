@@ -11,6 +11,11 @@ Pandorabots API client for PHP.
 - ext-json
 - [Guzzle](https://github.com/guzzle/guzzle) 7.15.2+ (7.x) and guzzlehttp/psr7 2.12.3+ (2.x)
 
+pb-php 2.2 and later require PHP 8.3 or newer. On PHP 8.1 or 8.2, Composer
+keeps projects on 2.1.5, the last release that supports them. PHP 8.1 no longer
+receives security fixes and PHP 8.2 reaches end of life on 31 December 2026, so
+upgrading PHP is recommended.
+
 ## Installation
 
 ```bash
@@ -78,17 +83,6 @@ Successful responses are returned as `stdClass` (the decoded JSON body). `getBot
 | `.substitution` | `Substitution` | `/bot/.../substitution/{name}` |
 | `.pdefaults` | `Pdefaults` | `/bot/.../pdefaults` |
 | `.properties` | `Properties` | `/bot/.../properties` |
-
-## Migration from v2
-
-v3 raises the minimum PHP version to 8.3. The public API — class names, method
-signatures, return types, and thrown exception types — is unchanged, so
-applications already running PHP 8.3 or newer can upgrade by changing the
-version constraint to `^3.0`.
-
-pb-php 2.x still installs on PHP 8.1 and 8.2, but PHP 8.1 no longer receives
-security fixes and PHP 8.2 reaches end of life on 31 December 2026. Upgrading PHP
-is recommended over pinning 2.x.
 
 ## Migration from v1
 
