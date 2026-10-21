@@ -6,20 +6,15 @@ Pandorabots API client for PHP.
 
 ## Requirements
 
-- PHP 8.1 or newer (8.3 or newer recommended — see below)
+- PHP 8.3 or newer — keep it on the latest patch release of a
+  [supported branch](https://www.php.net/supported-versions.php)
 - ext-json
 - [Guzzle](https://github.com/guzzle/guzzle) 7.15.2+ (7.x) and guzzlehttp/psr7 2.12.3+ (2.x)
 
-> **PHP 8.1 is end of life.** PHP 8.1 stopped receiving security fixes on
-> 31 December 2025 and is not covered by later PHP security releases, including
-> the critical PHP security release of 21 October 2026 (CVE-2026-109618 and
-> CVE-2026-109619, fixed in PHP 8.2.35, 8.3.36, 8.4.27, and 8.5.12). PHP 8.2
-> reaches end of life on 31 December 2026. Run a supported PHP version — 8.3 or
-> newer is recommended — and keep it on the latest patch release. See
-> <https://www.php.net/supported-versions.php>.
->
-> pb-php 2.x continues to install on PHP 8.1 and 8.2, but support for them is
-> deprecated. pb-php 3.0 will require PHP 8.3 or newer.
+pb-php 2.2 and later require PHP 8.3 or newer. On PHP 8.1 or 8.2, Composer
+keeps projects on 2.1.5, the last release that supports them. PHP 8.1 no longer
+receives security fixes and PHP 8.2 reaches end of life on 31 December 2026, so
+upgrading PHP is recommended.
 
 ## Installation
 
@@ -117,10 +112,10 @@ accessors remain available for retries and diagnostics, and can contain
 credentials or conversation data. Do not log their raw values or dump entire
 exception objects.
 
-Use `zend.exception_ignore_args=On` when logging exception traces, especially on
-PHP 8.1. PHP 8.2+ also redacts this library's sensitive parameters using
-`SensitiveParameter`; callers remain responsible for sensitive arguments in their
-own stack frames. This library does not change global PHP settings.
+Use `zend.exception_ignore_args=On` when logging exception traces. This library
+also redacts its sensitive parameters using `SensitiveParameter`; callers remain
+responsible for sensitive arguments in their own stack frames. This library does
+not change global PHP settings.
 
 ## Testing
 
@@ -132,7 +127,7 @@ composer test          # PHPUnit unit suite (mocked HTTP, runs by default)
 composer analyse       # PHPStan (level 6)
 ```
 
-CI runs the unit suite and dependency audit on PHP 8.1 / 8.2 / 8.3 / 8.4 / 8.5 — see `.github/workflows/ci.yml`.
+CI runs the unit suite and dependency audit on PHP 8.3 / 8.4 / 8.5 — see `.github/workflows/ci.yml`.
 
 ### Integration tests (real Pandorabots API)
 

@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [2.2.0] — 2026-10-22
+
+### Removed
+- Support for PHP 8.1 and 8.2, deprecated in 2.1.5. The required PHP version is now `^8.3` (was `^8.1`). Composer does not install this release on PHP 8.1 or 8.2, so those projects stay on 2.1.5. PHP 8.1 reached end of life on 31 December 2025 and does not receive PHP security fixes; PHP 8.2 reaches end of life on 31 December 2026.
+
+### Changed
+- CI matrix now covers PHP 8.3 / 8.4 / 8.5.
+- The exception security tests no longer fall back to `zend.exception_ignore_args=On` for PHP 8.1.
+
+### Notes
+- 2.1.5 announced that PHP `^8.3` would be required from 3.0. It ships in this minor release instead: public class names, method signatures, return types, and thrown exception types are unchanged, and Composer's platform check keeps PHP 8.1/8.2 projects on 2.1.5.
+
 ## [2.1.5] — 2026-10-21
 
 ### Security
@@ -13,7 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - CVE-2026-109618 and CVE-2026-109619 are in the PHP runtime's web request handling and can be triggered before application code runs. pb-php needs no code change for them, but applications that use it while serving web requests must upgrade PHP.
 
 ### Deprecated
-- Support for PHP 8.1 and 8.2 is deprecated. The next major version, 3.0, will require PHP `^8.3`. The 2.x line keeps the `^8.1` constraint, and no code, method signatures, or runtime behavior change in this release.
+- Support for PHP 8.1 and 8.2 is deprecated. A later release will require PHP `^8.3` (originally announced as 3.0; shipped in 2.2.0). This release keeps the `^8.1` constraint, and no code, method signatures, or runtime behavior change in it.
 
 ## [2.1.4] — 2026-10-03
 
