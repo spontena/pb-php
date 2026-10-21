@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-Planned as 2.2.0.
+## [2.2.0] — 2026-10-22
 
 ### Removed
 - Support for PHP 8.1 and 8.2, deprecated in 2.1.5. The required PHP version is now `^8.3` (was `^8.1`). Composer does not install this release on PHP 8.1 or 8.2, so those projects stay on 2.1.5. PHP 8.1 reached end of life on 31 December 2025 and does not receive PHP security fixes; PHP 8.2 reaches end of life on 31 December 2026.
