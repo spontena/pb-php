@@ -25,10 +25,9 @@ final class ExceptionSecurityTest extends TestCase
 
     protected function setUp(): void
     {
-        // Exercise SensitiveParameter with trace arguments enabled on PHP 8.2+.
-        // PHP 8.1 requires this production setting to avoid logging arguments.
+        // Exercise SensitiveParameter with trace arguments enabled.
         $this->previousIgnoreArgs = (string) ini_get('zend.exception_ignore_args');
-        ini_set('zend.exception_ignore_args', PHP_VERSION_ID >= 80200 ? '0' : '1');
+        ini_set('zend.exception_ignore_args', '0');
     }
 
     protected function tearDown(): void

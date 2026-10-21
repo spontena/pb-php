@@ -6,19 +6,10 @@ Pandorabots API client for PHP.
 
 ## Requirements
 
-- PHP 8.1 or newer (8.3 or newer recommended — see below)
+- PHP 8.3 or newer — keep it on the latest patch release of a
+  [supported branch](https://www.php.net/supported-versions.php)
 - ext-json
 - [Guzzle](https://github.com/guzzle/guzzle) 7.15.2+ (7.x) and guzzlehttp/psr7 2.12.3+ (2.x)
-
-> **PHP 8.1 is end of life.** PHP 8.1 stopped receiving security fixes on
-> 31 December 2025 and is not covered by later PHP security releases, including
-> the critical PHP security release of October 2026. PHP 8.2 reaches end of life
-> on 31 December 2026. Run a supported PHP version — 8.3 or newer is recommended —
-> and keep it on the latest patch release. See
-> <https://www.php.net/supported-versions.php>.
->
-> pb-php 2.x continues to install on PHP 8.1 and 8.2, but support for them is
-> deprecated. pb-php 3.0 will require PHP 8.3 or newer.
 
 ## Installation
 
@@ -88,6 +79,17 @@ Successful responses are returned as `stdClass` (the decoded JSON body). `getBot
 | `.pdefaults` | `Pdefaults` | `/bot/.../pdefaults` |
 | `.properties` | `Properties` | `/bot/.../properties` |
 
+## Migration from v2
+
+v3 raises the minimum PHP version to 8.3. The public API — class names, method
+signatures, return types, and thrown exception types — is unchanged, so
+applications already running PHP 8.3 or newer can upgrade by changing the
+version constraint to `^3.0`.
+
+pb-php 2.x still installs on PHP 8.1 and 8.2, but PHP 8.1 no longer receives
+security fixes and PHP 8.2 reaches end of life on 31 December 2026. Upgrading PHP
+is recommended over pinning 2.x.
+
 ## Migration from v1
 
 v2 is a breaking-change release. Notable differences:
@@ -116,10 +118,10 @@ accessors remain available for retries and diagnostics, and can contain
 credentials or conversation data. Do not log their raw values or dump entire
 exception objects.
 
-Use `zend.exception_ignore_args=On` when logging exception traces, especially on
-PHP 8.1. PHP 8.2+ also redacts this library's sensitive parameters using
-`SensitiveParameter`; callers remain responsible for sensitive arguments in their
-own stack frames. This library does not change global PHP settings.
+Use `zend.exception_ignore_args=On` when logging exception traces. This library
+also redacts its sensitive parameters using `SensitiveParameter`; callers remain
+responsible for sensitive arguments in their own stack frames. This library does
+not change global PHP settings.
 
 ## Testing
 
@@ -131,7 +133,7 @@ composer test          # PHPUnit unit suite (mocked HTTP, runs by default)
 composer analyse       # PHPStan (level 6)
 ```
 
-CI runs the unit suite and dependency audit on PHP 8.1 / 8.2 / 8.3 / 8.4 / 8.5 — see `.github/workflows/ci.yml`.
+CI runs the unit suite and dependency audit on PHP 8.3 / 8.4 / 8.5 — see `.github/workflows/ci.yml`.
 
 ### Integration tests (real Pandorabots API)
 

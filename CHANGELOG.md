@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+Planned as 3.0.0.
+
+### Changed (breaking)
+- Required PHP version raised to `^8.3` (was `^8.1`). PHP 8.1 reached end of life on 31 December 2025 and does not receive PHP security fixes; PHP 8.2 reaches end of life on 31 December 2026. Public class names, method signatures, return types, and thrown exception types are unchanged.
+
+### Changed
+- CI matrix now covers PHP 8.3 / 8.4 / 8.5.
+- The exception security tests no longer fall back to `zend.exception_ignore_args=On` for PHP 8.1.
+
 ## [2.1.5] — 2026-10-21
 
 ### Security
