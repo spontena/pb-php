@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [2.1.5] — 2026-10-21
+
+### Security
+- Document that PHP 8.1 reached end of life on 31 December 2025 and does not receive PHP security fixes, including the critical PHP security release of October 2026. PHP 8.3 or newer is recommended; PHP 8.2 reaches end of life on 31 December 2026. Updating this library does not patch the PHP runtime — upgrade PHP itself to the latest patch release of a supported branch.
+
+### Deprecated
+- Support for PHP 8.1 and 8.2 is deprecated. The next major version, 3.0, will require PHP `^8.3`. The 2.x line keeps the `^8.1` constraint, and no code, method signatures, or runtime behavior change in this release.
+
 ## [2.1.4] — 2026-10-03
 
 ### Security

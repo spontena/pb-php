@@ -6,9 +6,19 @@ Pandorabots API client for PHP.
 
 ## Requirements
 
-- PHP 8.1 or newer
+- PHP 8.1 or newer (8.3 or newer recommended — see below)
 - ext-json
 - [Guzzle](https://github.com/guzzle/guzzle) 7.15.2+ (7.x) and guzzlehttp/psr7 2.12.3+ (2.x)
+
+> **PHP 8.1 is end of life.** PHP 8.1 stopped receiving security fixes on
+> 31 December 2025 and is not covered by later PHP security releases, including
+> the critical PHP security release of October 2026. PHP 8.2 reaches end of life
+> on 31 December 2026. Run a supported PHP version — 8.3 or newer is recommended —
+> and keep it on the latest patch release. See
+> <https://www.php.net/supported-versions.php>.
+>
+> pb-php 2.x continues to install on PHP 8.1 and 8.2, but support for them is
+> deprecated. pb-php 3.0 will require PHP 8.3 or newer.
 
 ## Installation
 
