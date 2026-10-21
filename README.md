@@ -12,9 +12,10 @@ Pandorabots API client for PHP.
 
 > **PHP 8.1 is end of life.** PHP 8.1 stopped receiving security fixes on
 > 31 December 2025 and is not covered by later PHP security releases, including
-> the critical PHP security release of October 2026. PHP 8.2 reaches end of life
-> on 31 December 2026. Run a supported PHP version — 8.3 or newer is recommended —
-> and keep it on the latest patch release. See
+> the critical PHP security release of 21 October 2026 (CVE-2026-109618 and
+> CVE-2026-109619, fixed in PHP 8.2.35, 8.3.36, 8.4.27, and 8.5.12). PHP 8.2
+> reaches end of life on 31 December 2026. Run a supported PHP version — 8.3 or
+> newer is recommended — and keep it on the latest patch release. See
 > <https://www.php.net/supported-versions.php>.
 >
 > pb-php 2.x continues to install on PHP 8.1 and 8.2, but support for them is
