@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+- CI now uses `actions/checkout@v7` and `actions/cache@v6`, which run on Node.js 24. GitHub has deprecated Node.js 20 on Actions runners, and the previous `@v4` versions were being forced onto Node.js 24 with a warning. No library code changes.
+
 ## [2.2.0] — 2026-10-22
 
 ### Removed
