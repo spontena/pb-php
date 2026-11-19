@@ -160,7 +160,7 @@ composer test          # PHPUnit unit suite (mocked HTTP, runs by default)
 composer analyse       # PHPStan (level 6)
 ```
 
-CI runs the unit suite and dependency audit on PHP 8.3 / 8.4 / 8.5 — see `.github/workflows/ci.yml`.
+CI runs the unit suite and dependency audit on PHP 8.3 / 8.4 / 8.5 / 8.6 — see `.github/workflows/ci.yml`.
 
 ### Integration tests (real Pandorabots API)
 
