@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+- CI matrix now also covers PHP 8.6, released on 19 November 2026. The `^8.3` constraint already allows it; no library code changes.
+
 ## [2.2.1] — 2026-11-19
 
 ### Security
