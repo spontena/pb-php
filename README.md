@@ -16,6 +16,39 @@ keeps projects on 2.1.5, the last release that supports them. PHP 8.1 no longer
 receives security fixes and PHP 8.2 reaches end of life on 31 December 2026, so
 upgrading PHP is recommended.
 
+### Windows: Brotli decompression (CVE-2026-111497)
+
+PHP Windows builds older than 8.5.12-1, 8.4.27-1, 8.3.36-1, and 8.2.35-1 bundle
+a Brotli decoder with an out-of-bounds write vulnerability
+([CVE-2026-111497](https://www.php.net/archive/2026.php#2026-10-26-1)). Guzzle
+enables cURL's automatic response decompression by default, so pb-php requests
+can reach the vulnerable decoder if a server, or anyone able to tamper with the
+connection, returns a crafted Brotli-encoded response.
+
+Update to one of the rebuilt Windows packages above or a later release. PHP 8.1
+is end of life and has no rebuilt package. If you cannot update yet, pass a
+Guzzle client with response decompression disabled:
+
+```php
+use GuzzleHttp\Client;
+use GuzzleHttp\RequestOptions;
+use Spontena\PbPhp\PBClient;
+
+$pb = new PBClient(
+    host:    'https://api.pandorabots.com',
+    appId:   getenv('PB_APP_ID'),
+    userKey: getenv('PB_USER_KEY'),
+    http:    new Client([
+        RequestOptions::CONNECT_TIMEOUT => 5,  // pb-php's default timeouts
+        RequestOptions::TIMEOUT         => 30,
+        RequestOptions::DECODE_CONTENT  => false,
+    ]),
+);
+```
+
+On Linux and macOS, PHP uses the system libcurl and Brotli libraries; keep them
+updated through your OS or package manager.
+
 ## Installation
 
 ```bash
