@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Security
+- Document CVE-2026-111497, an out-of-bounds write in the Brotli decoder bundled with PHP Windows builds older than 8.5.12-1, 8.4.27-1, 8.3.36-1, and 8.2.35-1. Guzzle enables cURL's automatic response decompression by default, so pb-php requests can reach it. The README lists the fixed builds and a workaround that passes a Guzzle client with `decode_content` disabled. No library code changes.
+
 ### Changed
 - CI now uses `actions/checkout@v7` and `actions/cache@v6`, which run on Node.js 24. GitHub has deprecated Node.js 20 on Actions runners, and the previous `@v4` versions were being forced onto Node.js 24 with a warning. No library code changes.
 
