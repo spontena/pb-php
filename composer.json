@@ -4,6 +4,7 @@
     "keywords": ["pandorabots", "php", "aiml", "spontena"],
     "type": "library",
     "license": "MIT",
+    "abandoned": true,
     "authors": [
         {
             "name": "knlab",

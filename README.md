@@ -2,7 +2,27 @@
 
 Pandorabots API client for PHP.
 
-> See the official Pandorabots API documentation: <https://www.pandorabots.com/docs/api-endpoints/>
+> [!WARNING]
+> **Pandorabots has shut down its developer hosting platform, so this library no
+> longer works.** In 2026 Pandorabots wound down the hosted bot service and the
+> API that pb-php calls (`api.pandorabots.com`); its website now carries a
+> "Hosting Service Sunset" notice. pb-php is no longer maintained, and 2.3.1 is
+> its final release.
+>
+> To keep running AIML bots, Pandorabots points to open-source AIML interpreters:
+> [Program AB](https://code.google.com/archive/p/program-ab/) (Java, AIML 2.0
+> reference implementation), [Program-Y](https://github.com/keiffster/program-y)
+> (Python), [aimlinterpreter](https://www.npmjs.com/package/aimlinterpreter)
+> (Node.js), and community projects such as Program O (PHP) listed under
+> [github.com/pandorabots](https://github.com/pandorabots). The AIML
+> specification is at [aiml.foundation](http://www.aiml.foundation/). Customers
+> who missed the migration window can contact <support@pandorabots.com>.
+>
+> The rest of this README describes the library as it worked while the service
+> was available.
+
+> The official Pandorabots API documentation used to be at
+> <https://www.pandorabots.com/docs/api-endpoints/>; it is no longer online.
 
 ## Requirements
 
