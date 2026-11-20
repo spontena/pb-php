@@ -9,7 +9,7 @@ Pandorabots API client for PHP.
 - PHP 8.3 or newer — keep it on the latest patch release of a
   [supported branch](https://www.php.net/supported-versions.php)
 - ext-json
-- [Guzzle](https://github.com/guzzle/guzzle) 7.15.2+ (7.x) and guzzlehttp/psr7 2.12.3+ (2.x)
+- [Guzzle](https://github.com/guzzle/guzzle) 7.16+ (7.x) or 8.x, with guzzlehttp/psr7 2.12.3+ (2.x) or 3.x
 
 pb-php 2.2 and later require PHP 8.3 or newer. On PHP 8.1 or 8.2, Composer
 keeps projects on 2.1.5, the last release that supports them. PHP 8.1 no longer
@@ -136,14 +136,22 @@ request method/URL path, without the query or response body. Use `getStatusCode(
 `getResponseBody()`, or `getDecodedBody()` for application error handling instead
 of parsing the exception message.
 
-Transport failures retain the standard Guzzle `ConnectException`,
-`RequestException`, or `TooManyRedirectsException` type, with a fixed message
-(plus the numeric cURL error code when the handler reports one) and no previous
-exception. Custom subclasses raised by an injected HTTP client are normalized to
-the corresponding standard type. Request, response, and handler context
-accessors remain available for retries and diagnostics, and can contain
-credentials or conversation data. Do not log their raw values or dump entire
-exception objects.
+Transport failures keep the class of the built-in Guzzle exception, with a fixed
+message (plus the numeric cURL error code when available) and no previous
+exception. On Guzzle 7 that is `ConnectException`, `RequestException`, or
+`TooManyRedirectsException`. Guzzle 8 classifies failures more precisely, for
+example `ConnectTimeoutException`, `NetworkTimeoutException`,
+`NetworkException`, `ResponseTransferException`, and `ResponseTimeoutException`,
+and those classes are kept as well. Code that supports both Guzzle versions can
+catch `Psr\Http\Client\NetworkExceptionInterface` for failures without a
+response. Custom subclasses raised by an injected HTTP client are rebuilt as the
+nearest built-in Guzzle class.
+
+Request and response accessors, and on Guzzle 7 the handler context, remain
+available for retries and diagnostics, and can contain credentials or
+conversation data. Guzzle 8 removed `getHandlerContext()`; use its exception
+classes or the `on_stats` request option instead. Do not log raw accessor values
+or dump entire exception objects.
 
 Use `zend.exception_ignore_args=On` when logging exception traces. This library
 also redacts its sensitive parameters using `SensitiveParameter`; callers remain
@@ -160,7 +168,7 @@ composer test          # PHPUnit unit suite (mocked HTTP, runs by default)
 composer analyse       # PHPStan (level 6)
 ```
 
-CI runs the unit suite and dependency audit on PHP 8.3 / 8.4 / 8.5 / 8.6 — see `.github/workflows/ci.yml`.
+CI runs the unit suite, PHPStan, and dependency audit on PHP 8.3 / 8.4 / 8.5 / 8.6, each with Guzzle 7 and Guzzle 8 — see `.github/workflows/ci.yml`.
 
 ### Integration tests (real Pandorabots API)
 

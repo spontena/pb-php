@@ -8,10 +8,11 @@ use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\TooManyRedirectsException;
+use GuzzleHttp\Exception\TransferException;
 use GuzzleHttp\Psr7\Utils;
 use GuzzleHttp\RequestOptions;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Spontena\PbPhp\Exception\ApiException;
 use Spontena\PbPhp\Exception\InvalidArgumentException;
@@ -19,6 +20,23 @@ use Spontena\PbPhp\Exception\InvalidFileException;
 
 final class PBClient
 {
+    /** Present only in Guzzle 8, whose exception constructors differ from Guzzle 7. */
+    private const GUZZLE8_RESPONSE_EXCEPTION = 'GuzzleHttp\\Exception\\ResponseException';
+
+    /**
+     * Log-safe descriptions for rebuilt transfer exceptions, checked in order
+     * against the built-in class. Classes named by string exist only in Guzzle 8.
+     */
+    private const TRANSPORT_DESCRIPTIONS = [
+        'GuzzleHttp\\Exception\\ConnectTimeoutException' => 'Pandorabots API connection timed out',
+        ConnectException::class => 'Pandorabots API connection failed',
+        'GuzzleHttp\\Exception\\NetworkTimeoutException' => 'Pandorabots API request timed out',
+        'GuzzleHttp\\Exception\\NetworkException' => 'Pandorabots API network request failed',
+        TooManyRedirectsException::class => 'Pandorabots API redirect limit exceeded',
+        'GuzzleHttp\\Exception\\ResponseTimeoutException' => 'Pandorabots API response timed out',
+        'GuzzleHttp\\Exception\\ResponseTransferException' => 'Pandorabots API response transfer failed',
+    ];
+
     private readonly ClientInterface $http;
 
     public function __construct(
@@ -274,47 +292,105 @@ final class PBClient
             return $this->http->request($method, $url, $options);
         } catch (BadResponseException $e) {
             throw ApiException::fromGuzzle($e);
-        } catch (ConnectException $e) {
-            // Keep retry diagnostics available explicitly, but never include the
-            // original message or exception chain in the log-facing exception.
-            throw new ConnectException(
-                $this->transportMessage('Pandorabots API connection failed', $e->getHandlerContext()),
-                $e->getRequest(),
-                null,
-                $e->getHandlerContext(),
-            );
-        } catch (RequestException $e) {
-            if ($e instanceof TooManyRedirectsException) {
-                throw new TooManyRedirectsException(
-                    $this->transportMessage('Pandorabots API redirect limit exceeded', $e->getHandlerContext()),
-                    $e->getRequest(),
-                    $e->getResponse(),
-                    null,
-                    $e->getHandlerContext(),
-                );
-            }
-
-            throw new RequestException(
-                $this->transportMessage('Pandorabots API request failed', $e->getHandlerContext()),
-                $e->getRequest(),
-                $e->getResponse(),
-                null,
-                $e->getHandlerContext(),
-            );
+        } catch (TransferException $e) {
+            throw $this->safeTransferException($e);
         }
+    }
+
+    /**
+     * Rebuild a Guzzle transfer exception with a fixed message and no previous
+     * exception, so the original (URL-bearing) message and exception chain
+     * never reach logs. Retry diagnostics stay available explicitly: the
+     * rebuilt exception keeps the nearest built-in Guzzle class, the request,
+     * any response, and on Guzzle 7 the handler context.
+     *
+     * Guzzle 7 and 8 construct these classes differently, so the class is
+     * instantiated dynamically.
+     */
+    private function safeTransferException(#[\SensitiveParameter] TransferException $e): TransferException
+    {
+        $request = method_exists($e, 'getRequest') ? $e->getRequest() : null;
+        if (!$request instanceof RequestInterface) {
+            // Guzzle 7's base TransferException carries no request; leave it as is.
+            return $e;
+        }
+
+        $class = self::builtInTransferClass($e);
+        $message = $this->transportMessage(self::transportDescription($class), self::curlErrno($e));
+        $response = method_exists($e, 'getResponse') ? $e->getResponse() : null;
+
+        if (!class_exists(self::GUZZLE8_RESPONSE_EXCEPTION)) {
+            $context = method_exists($e, 'getHandlerContext') ? $e->getHandlerContext() : [];
+
+            return is_a($class, ConnectException::class, true)
+                ? new $class($message, $request, null, $context)
+                : new $class($message, $request, $response, null, $context);
+        }
+
+        // Guzzle 8: response-aware classes require the response; the others
+        // take the message and request only.
+        return $response instanceof ResponseInterface
+            ? new $class($message, $request, $response)
+            : new $class($message, $request);
+    }
+
+    /**
+     * Custom subclasses raised by an injected client may declare their own
+     * constructors, so they are rebuilt as their nearest built-in Guzzle class.
+     *
+     * @return class-string<TransferException>
+     */
+    private static function builtInTransferClass(#[\SensitiveParameter] TransferException $e): string
+    {
+        foreach ([$e::class, ...array_values(class_parents($e))] as $class) {
+            // Anonymous subclasses are named after their parent ("...\ConnectException@anonymous").
+            if (
+                str_starts_with($class, 'GuzzleHttp\\Exception\\')
+                && is_a($class, TransferException::class, true)
+                && !(new \ReflectionClass($class))->isAnonymous()
+            ) {
+                return $class;
+            }
+        }
+
+        return TransferException::class;
+    }
+
+    private static function transportDescription(string $class): string
+    {
+        foreach (self::TRANSPORT_DESCRIPTIONS as $base => $description) {
+            if (is_a($class, $base, true)) {
+                return $description;
+            }
+        }
+
+        return 'Pandorabots API request failed';
+    }
+
+    /**
+     * Guzzle 7 reports the cURL error code in the handler context. Guzzle 8
+     * removed that accessor, so the leading "cURL error N:" of its message is
+     * read instead; only the digits are kept.
+     */
+    private static function curlErrno(#[\SensitiveParameter] TransferException $e): ?int
+    {
+        if (method_exists($e, 'getHandlerContext')) {
+            $errno = $e->getHandlerContext()['errno'] ?? null;
+
+            return is_int($errno) ? $errno : null;
+        }
+
+        return preg_match('/^cURL error (\d+):/', $e->getMessage(), $matches) === 1 ? (int) $matches[1] : null;
     }
 
     /**
      * Build a credential-free transport error message. Only the numeric cURL
      * error code is appended so timeouts, DNS failures, and TLS errors remain
      * distinguishable in logs without echoing the original (URL-bearing) text.
-     *
-     * @param array<string, mixed> $handlerContext
      */
-    private function transportMessage(string $description, array $handlerContext): string
+    private function transportMessage(string $description, ?int $errno): string
     {
-        $errno = $handlerContext['errno'] ?? null;
-        if (is_int($errno) && $errno > 0) {
+        if ($errno !== null && $errno > 0) {
             return sprintf('%s (cURL error %d).', $description, $errno);
         }
 
