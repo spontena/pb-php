@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [2.3.0] — 2026-11-21
+
 ### Added
 - Support for Guzzle 8 (`guzzlehttp/guzzle ^8.0`) with guzzlehttp/psr7 3. Transport failures keep Guzzle 8's more specific exception classes (`ConnectTimeoutException`, `NetworkTimeoutException`, `NetworkException`, `ResponseTransferException`, `ResponseTimeoutException`, `HandlerClosedException`) and get the same fixed, credential-free messages with no previous exception. Guzzle 8 removed `getHandlerContext()`, so on Guzzle 8 no handler context is available and the cURL error code is read from the leading `cURL error N:` of Guzzle's message (digits only). Behavior with Guzzle 7 is unchanged.
 
