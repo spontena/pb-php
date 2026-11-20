@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [2.3.1] — 2026-11-21
+
+### Deprecated
+- pb-php is deprecated and no longer maintained. Pandorabots has wound down its developer hosting platform, so the API this library calls (`api.pandorabots.com`) is no longer available. The README says so at the top and points to the open-source AIML interpreters that Pandorabots recommends, and `composer.json` marks the package as abandoned. No code changes; this is the final release.
+
 ## [2.3.0] — 2026-11-21
 
 ### Added
