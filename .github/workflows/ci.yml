@@ -18,6 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         php: ['8.3', '8.4', '8.5', '8.6']
+        guzzle: ['^7.16', '^8.0']
     steps:
       - uses: actions/checkout@v7
 
@@ -35,11 +36,13 @@ jobs:
       - uses: actions/cache@v6
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
-          restore-keys: ${{ runner.os }}-composer-${{ matrix.php }}-
+          key: ${{ runner.os }}-composer-${{ matrix.php }}-guzzle${{ matrix.guzzle }}-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-${{ matrix.php }}-guzzle${{ matrix.guzzle }}-
 
+      # composer.lock is not committed, so pin the Guzzle major for this job;
+      # otherwise every job would resolve to the newest major.
       - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
+        run: composer update --prefer-dist --no-progress --with "guzzlehttp/guzzle:${{ matrix.guzzle }}"
 
       - name: Audit dependencies
         run: composer audit --locked

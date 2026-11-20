@@ -8,19 +8,23 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\TooManyRedirectsException;
+use GuzzleHttp\Exception\TransferException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use Spontena\PbPhp\Exception\ApiException;
 use Spontena\PbPhp\PBClient;
 
 final class ExceptionSecurityTest extends TestCase
 {
     private const KEY = 'dummy-review-key+/&';
+    private const GUZZLE8_RESPONSE_EXCEPTION = 'GuzzleHttp\\Exception\\ResponseException';
     private string $previousIgnoreArgs;
 
     protected function setUp(): void
@@ -37,8 +41,22 @@ final class ExceptionSecurityTest extends TestCase
 
     public static function transportFailures(): iterable
     {
+        $types = self::isGuzzle8()
+            ? [
+                ConnectException::class,
+                'GuzzleHttp\\Exception\\ConnectTimeoutException',
+                'GuzzleHttp\\Exception\\NetworkException',
+                'GuzzleHttp\\Exception\\NetworkTimeoutException',
+                RequestException::class,
+                TooManyRedirectsException::class,
+                'GuzzleHttp\\Exception\\ResponseTransferException',
+                'GuzzleHttp\\Exception\\ResponseTimeoutException',
+                'GuzzleHttp\\Exception\\HandlerClosedException',
+            ]
+            : [ConnectException::class, RequestException::class, TooManyRedirectsException::class];
+
         foreach ([false, true] as $atalk) {
-            foreach ([ConnectException::class, RequestException::class, TooManyRedirectsException::class] as $type) {
+            foreach ($types as $type) {
                 yield ($atalk ? 'botkey' : 'user_key') . '-' . $type => [$atalk, $type];
             }
         }
@@ -52,32 +70,61 @@ final class ExceptionSecurityTest extends TestCase
         $context = ['errno' => 28, 'error' => self::KEY];
         $handler = static function (RequestInterface $request) use ($type, $response, $context, &$sent) {
             $sent = $request;
-            $message = 'Transport failure for ' . $request->getUri();
+            $message = 'cURL error 28: Operation timed out for ' . $request->getUri();
             $previous = new \RuntimeException('Nested failure ' . self::KEY);
-            $failure = $type === ConnectException::class
-                ? new ConnectException($message, $request, $previous, $context)
-                : new $type($message, $request, $response, $previous, $context);
 
-            return Create::rejectionFor($failure);
+            return Create::rejectionFor(self::transferFailure($type, $message, $request, $response, $previous, $context));
         };
         $client = $this->client(new Client(['handler' => $handler]));
+        $expectsResponse = self::isGuzzle8()
+            ? is_a($type, self::GUZZLE8_RESPONSE_EXCEPTION, true)
+            : $type !== ConnectException::class;
 
         try {
             $atalk ? $client->atalk('dummy private input') : $client->getBotsList();
             self::fail('Expected a transport exception');
-        } catch (ConnectException | RequestException $e) {
+        } catch (TransferException $e) {
             self::assertSame($type, $e::class);
             self::assertNull($e->getPrevious());
             $this->assertSafeMessage($e);
             self::assertSame($sent, $e->getRequest());
-            self::assertSame($context, $e->getHandlerContext());
             self::assertStringContainsString('(cURL error 28).', $e->getMessage());
-            if ($e instanceof RequestException) {
+            if (self::isGuzzle8()) {
+                self::assertFalse(method_exists($e, 'getHandlerContext'));
+            } else {
+                self::assertSame($context, $e->getHandlerContext());
+            }
+            if ($expectsResponse) {
                 self::assertSame($response, $e->getResponse());
                 self::assertSame(302, $e->getCode());
             } else {
                 self::assertSame(0, $e->getCode());
             }
+        }
+    }
+
+    public function testCustomTransportSubclassesAreRebuiltAsTheBuiltInClass(): void
+    {
+        $handler = static function (RequestInterface $request) {
+            $message = 'cURL error 7: Failed to connect for ' . $request->getUri();
+
+            return Create::rejectionFor(new class ($message, $request) extends ConnectException {
+            });
+        };
+        $client = $this->client(new Client(['handler' => $handler]));
+
+        try {
+            $client->getBotsList();
+            self::fail('Expected ConnectException');
+        } catch (ConnectException $e) {
+            self::assertSame(ConnectException::class, $e::class);
+            $this->assertSafeMessage($e);
+            // Guzzle 8 carries the cURL code only in the message; this custom
+            // Guzzle 7 exception has no handler context to read it from.
+            self::assertSame(
+                self::isGuzzle8() ? 'Pandorabots API connection failed (cURL error 7).' : 'Pandorabots API connection failed.',
+                $e->getMessage(),
+            );
         }
     }
 
@@ -114,6 +161,39 @@ final class ExceptionSecurityTest extends TestCase
     private function client(Client $http): PBClient
     {
         return new PBClient('https://example.invalid', 'dummy-app', self::KEY, self::KEY, $http);
+    }
+
+    private static function isGuzzle8(): bool
+    {
+        return class_exists(self::GUZZLE8_RESPONSE_EXCEPTION);
+    }
+
+    /**
+     * Build a transfer exception the way the installed Guzzle major expects.
+     *
+     * @param array<string, mixed> $context
+     */
+    private static function transferFailure(
+        string $type,
+        string $message,
+        RequestInterface $request,
+        ResponseInterface $response,
+        \Throwable $previous,
+        array $context,
+    ): TransferException {
+        if (!self::isGuzzle8()) {
+            return $type === ConnectException::class
+                ? new ConnectException($message, $request, $previous, $context)
+                : new $type($message, $request, $response, $previous, $context);
+        }
+        if (is_a($type, self::GUZZLE8_RESPONSE_EXCEPTION, true)) {
+            return new $type($message, $request, $response, $previous);
+        }
+        if (is_a($type, NetworkExceptionInterface::class, true)) {
+            return new $type($message, $request, $previous);
+        }
+
+        return new $type($message, $request, 0, $previous);
     }
 
     private function assertSafeMessage(\Throwable $e): void

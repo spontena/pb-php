@@ -6,7 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- Support for Guzzle 8 (`guzzlehttp/guzzle ^8.0`) with guzzlehttp/psr7 3. Transport failures keep Guzzle 8's more specific exception classes (`ConnectTimeoutException`, `NetworkTimeoutException`, `NetworkException`, `ResponseTransferException`, `ResponseTimeoutException`, `HandlerClosedException`) and get the same fixed, credential-free messages with no previous exception. Guzzle 8 removed `getHandlerContext()`, so on Guzzle 8 no handler context is available and the cURL error code is read from the leading `cURL error N:` of Guzzle's message (digits only). Behavior with Guzzle 7 is unchanged.
+
 ### Changed
+- Require Guzzle `^7.16` on the 7.x line (was `^7.15.2`). Guzzle 7.16 no longer uses `GuzzleHttp\Promise\Is`, a class name that PHP 8.6 deprecates.
+- CI runs every PHP version with both Guzzle 7 and Guzzle 8. Because `composer.lock` is not committed, each job pins the major with `composer update --with`.
 - CI matrix now also covers PHP 8.6, released on 19 November 2026. The `^8.3` constraint already allows it; no library code changes.
 
 ## [2.2.1] — 2026-11-19
